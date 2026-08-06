@@ -59,7 +59,7 @@ def initialize_files():
         default_progress = {
             "completed_dates": [],
             "streak": 0,
-            "daily_notes": {},  # Stores notes by date string e.g. {"2026-08-05": "Learned past tense..."}
+            "daily_notes": {},
         }
         with open(PROGRESS_FILE, "w", encoding="utf-8") as f:
             json.dump(default_progress, f, indent=4)
@@ -73,7 +73,6 @@ def load_data():
     with open(PROGRESS_FILE, "r", encoding="utf-8") as f:
         progress = json.load(f)
 
-    # Ensure backwards compatibility if old progress file lacked daily_notes
     if "daily_notes" not in progress:
         progress["daily_notes"] = {}
 
@@ -114,7 +113,7 @@ def main():
         label="Total Days Completed", value=len(completed_dates)
     )
 
-    # Main Dashboard Tabs (Added Daily Notes tab)
+    # Main Dashboard Tabs
     tab1, tab2, tab3, tab4 = st.tabs(
         [
             "📅 Today's Task",
@@ -166,7 +165,6 @@ def main():
 
         daily_notes = progress.get("daily_notes", {})
 
-        # Let her pick which date to view or edit (defaults to today)
         selected_date = st.date_input(
             "Select Date", value=now_local.date()
         ).strftime("%Y-%m-%d")
@@ -189,16 +187,32 @@ def main():
                 st.success(f"Notes for {selected_date} saved successfully!")
                 st.rerun()
 
-        # Display past notes history overview
+        # Delete option for the currently selected date if a note exists
+        if current_note_content.strip():
+            if st.button(f"🗑️ Delete Note for {selected_date}"):
+                if selected_date in daily_notes:
+                    del daily_notes[selected_date]
+                    progress["daily_notes"] = daily_notes
+                    save_progress(progress)
+                    st.success(f"Note for {selected_date} deleted!")
+                    st.rerun()
+
         st.markdown("---")
         st.subheader("📚 Past Notes Archive")
         if daily_notes:
-            # Sort dates descending (newest first)
             sorted_dates = sorted(daily_notes.keys(), reverse=True)
             for d in sorted_dates:
-                if daily_notes[d].strip():  # Only show non-empty notes
+                if daily_notes[d].strip():
                     with st.expander(f"📝 {d}"):
                         st.write(daily_notes[d])
+                        if st.button(
+                            "🗑️ Delete this note", key=f"del_note_{d}"
+                        ):
+                            del daily_notes[d]
+                            progress["daily_notes"] = daily_notes
+                            save_progress(progress)
+                            st.success(f"Deleted note for {d}")
+                            st.rerun()
         else:
             st.info("No saved notes yet. Start writing above!")
 
