@@ -8,8 +8,8 @@ import streamlit as st
 SCHEDULE_FILE = "italian_schedule.json"
 PROGRESS_FILE = "user_progress.json"
 
-# Local timezone setting (matches local time for your friend)
-LOCAL_TZ = ZoneInfo("America/Chicago")
+# Updated to Italy's timezone so dates/days match her local time perfectly
+LOCAL_TZ = ZoneInfo("Europe/Rome")
 
 
 def initialize_files():
@@ -92,7 +92,7 @@ def main():
 
     schedule, progress = load_data()
 
-    # Get local current date and day name using ZoneInfo
+    # Get local current date and day name using Italy's ZoneInfo
     now_local = datetime.now(LOCAL_TZ)
     today_str = now_local.strftime("%Y-%m-%d")
     today_name = now_local.strftime("%A")
@@ -187,7 +187,6 @@ def main():
                 st.success(f"Notes for {selected_date} saved successfully!")
                 st.rerun()
 
-        # Delete option for the currently selected date if a note exists
         if current_note_content.strip():
             if st.button(f"🗑️ Delete Note for {selected_date}"):
                 if selected_date in daily_notes:
