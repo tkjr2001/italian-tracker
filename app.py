@@ -1,21 +1,18 @@
-import json
-import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import streamlit as st
 
-# File paths for data persistence
-SCHEDULE_FILE = "italian_schedule.json"
-PROGRESS_FILE = "user_progress.json"
-
-# Local timezone setting (matches local time for your friend)
+# Local timezone setting (matches local time)
 LOCAL_TZ = ZoneInfo("America/Chicago")
 
 
-def initialize_files():
-    """Ensures default JSON files exist with baseline data."""
-    if not os.path.exists(SCHEDULE_FILE):
-        default_schedule = {
+def initialize_session_state():
+    """Initializes default schedule and user progress in Streamlit session state
+
+    so each user gets an independent isolated session.
+    """
+    if "schedule" not in st.session_state:
+        st.session_state.schedule = {
             "Monday": {
                 "focus": "Listening & Pronunciation",
                 "task": "Listen to a 10-minute Italian podcast (e.g., 'Coffee Break Italian') and shadow the dialogue.",
@@ -52,29 +49,9 @@ def initialize_files():
                 "duration_mins": 10,
             },
         }
-        with open(SCHEDULE_FILE, "w", encoding="utf-8") as f:
-            json.dump(default_schedule, f, indent=4)
 
-    if not os.path.exists(PROGRESS_FILE):
-        default_progress = {"completed_dates": [], "streak": 0}
-        with open(PROGRESS_FILE, "w", encoding="utf-8") as f:
-            json.dump(default_progress, f, indent=4)
-
-
-def load_data():
-    """Loads schedule and user progress data from JSON files."""
-    initialize_files()
-    with open(SCHEDULE_FILE, "r", encoding="utf-8") as f:
-        schedule = json.load(f)
-    with open(PROGRESS_FILE, "r", encoding="utf-8") as f:
-        progress = json.load(f)
-    return schedule, progress
-
-
-def save_progress(progress):
-    """Saves user progress data back to JSON."""
-    with open(PROGRESS_FILE, "w", encoding="utf-8") as f:
-        json.dump(progress, f, indent=4)
+    if "progress" not in st.session_state:
+        st.session_state.progress = {"completed_dates": [], "streak": 0}
 
 
 def main():
@@ -82,7 +59,10 @@ def main():
         page_title="Italian Learning Dashboard", page_icon="🇮🇹", layout="centered"
     )
 
-    schedule, progress = load_data()
+    initialize_session_state()
+
+    schedule = st.session_state.schedule
+    progress = st.session_state.progress
 
     # Get local current date and day name using ZoneInfo
     now_local = datetime.now(LOCAL_TZ)
@@ -129,7 +109,7 @@ def main():
                     completed_dates.append(today_str)
                     progress["streak"] = streak + 1
                     progress["completed_dates"] = completed_dates
-                    save_progress(progress)
+                    st.session_state.progress = progress
                     st.success("Great job! Streak updated.")
                     st.rerun()
             else:
@@ -138,7 +118,7 @@ def main():
                     completed_dates.remove(today_str)
                     progress["streak"] = max(0, streak - 1)
                     progress["completed_dates"] = completed_dates
-                    save_progress(progress)
+                    st.session_state.progress = progress
                     st.rerun()
         else:
             st.warning("No curriculum found for today.")
@@ -184,8 +164,7 @@ def main():
                     "task": new_task,
                     "duration_mins": int(new_duration),
                 }
-                with open(SCHEDULE_FILE, "w", encoding="utf-8") as f:
-                    json.dump(schedule, f, indent=4)
+                st.session_state.schedule = schedule
                 st.success(f"Successfully updated {selected_day}!")
                 st.rerun()
 
