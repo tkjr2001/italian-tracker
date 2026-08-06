@@ -1,0 +1,61 @@
+{
+    "Monday": {
+        "focus": "Listening & Ear Training",
+        "task": "Listen to an Italian podcast episode or watch a short YouTube clip.",
+        "duration_mins": 20,
+        "resources": [
+            "Coffee Break Italian",
+            "Easy Italian YouTube"
+        ]
+    },
+    "Tuesday": {
+        "focus": "App & Vocabulary Boost",
+        "task": "Complete daily app lessons and review flashcards (Anki/Duolingo).",
+        "duration_mins": 15,
+        "resources": [
+            "Duolingo",
+            "Anki Flashcards"
+        ]
+    },
+    "Wednesday": {
+        "focus": "Active Speaking Practice",
+        "task": "Talk out loud. Describe your day or roleplay ordering food in Italian.",
+        "duration_mins": 15,
+        "resources": [
+            "Self-talk / Shadowing techniques"
+        ]
+    },
+    "Thursday": {
+        "focus": "Reading Comprehension",
+        "task": "Read a short graded reader article, news snippet, or recipe.",
+        "duration_mins": 20,
+        "resources": [
+            "News in Slow Italian",
+            "Italian recipe blogs"
+        ]
+    },
+    "Friday": {
+        "focus": "Writing & Output Check",
+        "task": "Write a short journal entry (3-5 sentences) about your week in Italian.",
+        "duration_mins": 15,
+        "resources": [
+            "Notebook or Lang-8 / HelloTalk"
+        ]
+    },
+    "Saturday": {
+        "focus": "Grammar Deep Dive",
+        "task": "Study one specific grammar rule or verb tense and practice exercises.",
+        "duration_mins": 30,
+        "resources": [
+            "Grammar textbooks / online conjugation tables"
+        ]
+    },
+    "Sunday": {
+        "focus": "Immersion & Fun",
+        "task": "Watch an Italian show on Netflix or listen to music guilt-free.",
+        "duration_mins": 30,
+        "resources": [
+            "Netflix (Italian audio/subtitles)"
+        ]
+    }
+}
