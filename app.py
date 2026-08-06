@@ -1,6 +1,6 @@
+from datetime import datetime
 import json
 import os
-from datetime import datetime
 from zoneinfo import ZoneInfo
 import streamlit as st
 
@@ -56,7 +56,11 @@ def initialize_files():
             json.dump(default_schedule, f, indent=4)
 
     if not os.path.exists(PROGRESS_FILE):
-        default_progress = {"completed_dates": [], "streak": 0}
+        default_progress = {
+            "completed_dates": [],
+            "streak": 0,
+            "daily_notes": {},  # Stores notes by date string e.g. {"2026-08-05": "Learned past tense..."}
+        }
         with open(PROGRESS_FILE, "w", encoding="utf-8") as f:
             json.dump(default_progress, f, indent=4)
 
@@ -68,6 +72,11 @@ def load_data():
         schedule = json.load(f)
     with open(PROGRESS_FILE, "r", encoding="utf-8") as f:
         progress = json.load(f)
+
+    # Ensure backwards compatibility if old progress file lacked daily_notes
+    if "daily_notes" not in progress:
+        progress["daily_notes"] = {}
+
     return schedule, progress
 
 
@@ -105,9 +114,14 @@ def main():
         label="Total Days Completed", value=len(completed_dates)
     )
 
-    # Main Dashboard Tabs
-    tab1, tab2, tab3 = st.tabs(
-        ["📅 Today's Task", "🗓️ Full 7-Day Curriculum", "⚙️ Manage Schedule"]
+    # Main Dashboard Tabs (Added Daily Notes tab)
+    tab1, tab2, tab3, tab4 = st.tabs(
+        [
+            "📅 Today's Task",
+            "📓 Daily Notes",
+            "🗓️ Full 7-Day Curriculum",
+            "⚙️ Manage Schedule",
+        ]
     )
 
     # --- TAB 1: TODAY'S TASK ---
@@ -143,8 +157,53 @@ def main():
         else:
             st.warning("No curriculum found for today.")
 
-    # --- TAB 2: FULL CURRICULUM ---
+    # --- TAB 2: DAILY NOTES ---
     with tab2:
+        st.header("📓 Daily Learning Notes")
+        st.markdown(
+            "Jot down new words, grammar rules, or reflections from your practice."
+        )
+
+        daily_notes = progress.get("daily_notes", {})
+
+        # Let her pick which date to view or edit (defaults to today)
+        selected_date = st.date_input(
+            "Select Date", value=now_local.date()
+        ).strftime("%Y-%m-%d")
+
+        current_note_content = daily_notes.get(selected_date, "")
+
+        with st.form("notes_form"):
+            note_input = st.text_area(
+                f"Notes for {selected_date}",
+                value=current_note_content,
+                placeholder="Write new vocabulary, sentences, or thoughts here...",
+                height=150,
+            )
+            submitted_note = st.form_submit_button("Save Note")
+
+            if submitted_note:
+                daily_notes[selected_date] = note_input
+                progress["daily_notes"] = daily_notes
+                save_progress(progress)
+                st.success(f"Notes for {selected_date} saved successfully!")
+                st.rerun()
+
+        # Display past notes history overview
+        st.markdown("---")
+        st.subheader("📚 Past Notes Archive")
+        if daily_notes:
+            # Sort dates descending (newest first)
+            sorted_dates = sorted(daily_notes.keys(), reverse=True)
+            for d in sorted_dates:
+                if daily_notes[d].strip():  # Only show non-empty notes
+                    with st.expander(f"📝 {d}"):
+                        st.write(daily_notes[d])
+        else:
+            st.info("No saved notes yet. Start writing above!")
+
+    # --- TAB 3: FULL CURRICULUM ---
+    with tab3:
         st.header("Your 7-Day Curriculum")
         st.markdown(
             "Here is the complete weekly breakdown designed to build well-rounded fluency."
@@ -155,8 +214,8 @@ def main():
                 st.write(f"**Task:** {details['task']}")
                 st.write(f"⏱️ **Duration:** {details['duration_mins']} mins")
 
-    # --- TAB 3: CUSTOMIZE SCHEDULE ---
-    with tab3:
+    # --- TAB 4: CUSTOMIZE SCHEDULE ---
+    with tab4:
         st.header("Customize Routine")
         st.markdown("Modify daily tasks to fit your preferences.")
 
